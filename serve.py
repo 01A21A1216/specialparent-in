@@ -1,10 +1,9 @@
 import os, sys
-sys.path.insert(0, os.path.dirname(__file__))
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from app import app
 from flask import send_from_directory, send_file
 
-# In Railway, static files are in same dir as serve.py
 BASE = os.path.dirname(os.path.abspath(__file__))
 DIST = os.path.join(BASE, 'static_dist')
 
@@ -15,4 +14,7 @@ def serve_react(path):
         return {'error': 'not found'}, 404
     if path and os.path.exists(os.path.join(DIST, path)):
         return send_from_directory(DIST, path)
-    return send_file(os.path.join(DIST, 'index.html'))
+    index = os.path.join(DIST, 'index.html')
+    if os.path.exists(index):
+        return send_file(index)
+    return 'SpecialParent API running. Frontend not found.', 200

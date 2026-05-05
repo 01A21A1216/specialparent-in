@@ -23,8 +23,10 @@ CORS(app, origins=["http://localhost:5173","http://127.0.0.1:5173","http://local
 JWT_SECRET = os.getenv("JWT_SECRET", "specialparent_jwt_2025_secure_key")
 JWT_ALGO = "HS256"
 JWT_EXPIRES_DAYS = 7
-DB_PATH = os.path.join(os.path.dirname(__file__), "../database/specialparent.db")
-os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
+# Use /tmp on cloud (Railway), or local database/ folder
+_local_db = os.path.join(os.path.dirname(__file__), "database", "specialparent.db")
+os.makedirs(os.path.join(os.path.dirname(__file__), "database"), exist_ok=True)
+DB_PATH = os.environ.get("DB_PATH", _local_db)
 
 # ── DATABASE ──────────────────────────────────────────
 def get_db():
@@ -840,8 +842,16 @@ def seed_demo_data():
 
         print("✅ Database seeded! demo@sp.in / Demo@1234")
 
+# Always init and seed on startup (works with both gunicorn and direct run)
+with app.app_context():
+    try:
+        init_db()
+        seed_demo_data()
+        print("✅ DB ready: demo@sp.in / Demo@1234")
+    except Exception as e:
+        print(f"⚠️ DB init error: {e}")
+
 if __name__ == "__main__":
-    seed_demo_data()
     port = int(os.environ.get("PORT", 3001))
     print(f"\n🌿 SpecialParent.in API → http://localhost:{port}")
     print("🔑 Demo: demo@sp.in / Demo@1234\n")
